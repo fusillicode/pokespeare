@@ -38,6 +38,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Compress::default())
             .wrap(StructuredLogger::new(log.clone()))
+            .data(log.clone())
             .data(poke_api_client.clone())
             .data(fun_translations_client.clone())
             .service(get_shakesperean_description)
@@ -59,6 +60,7 @@ struct FunTranslationsClient {
 
 #[get("/pokemon/{pokemon_id_or_name}")]
 async fn get_shakesperean_description(
+    log: Data<Logger>,
     poke_api_client: Data<PokeApiClient>,
     fun_translations_client: Data<FunTranslationsClient>,
     pokemon_id_or_name: Path<String>,
@@ -76,7 +78,7 @@ async fn get_shakesperean_description(
 
     let pokemon_species_response = reqwest::get(poke_api_species_request_url).await;
 
-    eprintln!("POKE RESP: {:?}", pokemon_species_response);
+    info!(log, "PokeApi response"; "response" => ?pokemon_species_response);
 
     let pokemon_species = pokemon_species_response
         .unwrap()
@@ -102,7 +104,7 @@ async fn get_shakesperean_description(
         .send()
         .await;
 
-    eprintln!("SHAKE RESP: {:?}", shakesperean_description_response);
+    info!(log, "FunTranslations response"; "response" => ?shakesperean_description_response);
 
     let shakesperean_description = shakesperean_description_response
         .unwrap()
@@ -138,6 +140,7 @@ struct ShakespereanDescription {
 
 #[derive(Deserialize, Serialize)]
 struct ShakespereanDescriptionContents {
+    #[serde(rename = "translated")]
     translated_text: String,
     #[serde(rename = "text")]
     original_text: String,
