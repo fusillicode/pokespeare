@@ -1440,7 +1440,6 @@ dependencies = [
  "rand",
  "reqwest",
  "serde",
- "serde_json",
  "slog",
  "slog-async",
  "slog-envlogger",
