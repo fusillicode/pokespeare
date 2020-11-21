@@ -18,8 +18,10 @@ async fn main() -> std::io::Result<()> {
 
     let listen_addr =
         std::env::var("POKESPEARE_LISTEN_ADDR").expect("Missing required POKESPEARE_LISTEN_ADDR");
-    let poke_api_endpoint = std::env::var("POKE_API_ENDPOINT").expect("Missing required POKE_API_ENDPOINT");
-    let fun_translations_api_endpoint = std::env::var("FUN_TRANSLATIONS_API_ENDPOINT").expect("Missing required FUN_TRANSLATIONS_API_ENDPOINT");
+    let poke_api_endpoint =
+        std::env::var("POKE_API_ENDPOINT").expect("Missing required POKE_API_ENDPOINT");
+    let fun_translations_api_endpoint = std::env::var("FUN_TRANSLATIONS_API_ENDPOINT")
+        .expect("Missing required FUN_TRANSLATIONS_API_ENDPOINT");
 
     let poke_api_client = PokeApiClient::new(&poke_api_endpoint);
     let fun_translations_client = FunTranslationsClient::new(&fun_translations_api_endpoint);

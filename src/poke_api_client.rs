@@ -11,7 +11,7 @@ impl PokeApiClient {
     pub fn new(endpoint: &str) -> Self {
         Self {
             endpoint: Url::parse(endpoint)
-                .unwrap_or_else(|e| panic!("Can't parse {} as URL, error: {:?}", endpoint, e))
+                .unwrap_or_else(|e| panic!("Can't parse {} as URL, error: {:?}", endpoint, e)),
         }
     }
 
@@ -21,13 +21,13 @@ impl PokeApiClient {
     ) -> Result<String, Box<dyn std::error::Error>> {
         let api_url = format!("{}/pokemon-species/{}", self.endpoint, pokemon_name);
 
-        let pokemon_species = reqwest::get(&api_url)
+        let response = reqwest::get(&api_url)
             .await?
             .json::<PokemonSpecies>()
             .await?;
 
         let language_filter = "en";
-        Ok(pokemon_species
+        Ok(response
             .descriptions
             .iter()
             .filter(|d| d.language.name == language_filter)
