@@ -11,7 +11,7 @@ impl FunTranslationsClient {
         let mut fun_translations_shakespere_request_url = self.endpoint.clone();
         fun_translations_shakespere_request_url
             .path_segments_mut()
-            .unwrap()
+            .map_err(|_| "Can't construct shakespeare.json API URL")?
             .push("shakespeare.json");
 
         let shakesperean_description_response = reqwest::Client::new()
@@ -20,11 +20,9 @@ impl FunTranslationsClient {
             .send()
             .await;
 
-        Ok(shakesperean_description_response
-            .unwrap()
+        Ok(shakesperean_description_response?
             .json::<ShakespereanDescription>()
-            .await
-            .unwrap()
+            .await?
             .contents
             .translated_text)
     }
