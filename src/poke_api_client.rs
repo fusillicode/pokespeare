@@ -1,40 +1,22 @@
 use rand::prelude::*;
 use reqwest::Url;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 #[derive(Clone)]
 pub struct PokeApiClient {
     pub endpoint: Url,
 }
 
-#[derive(Deserialize, Serialize)]
-struct PokemonSpecies {
-    #[serde(rename = "flavor_text_entries")]
-    descriptions: Vec<PokemonDescription>,
-}
-
-#[derive(Deserialize, Serialize)]
-struct PokemonDescription {
-    #[serde(rename = "flavor_text")]
-    text: String,
-    language: Language,
-}
-
-#[derive(Deserialize, Serialize)]
-struct Language {
-    name: String,
-}
-
 impl PokeApiClient {
     pub async fn get_random_description(
         &self,
-        pokemon_id_or_name: &str,
+        pokemon_name: &str,
     ) -> Result<String, Box<dyn std::error::Error>> {
         let mut poke_api_species_request_url = self.endpoint.clone();
         poke_api_species_request_url
             .path_segments_mut()
             .map_err(|_| "Can't construct pokemon-species API URL")?
-            .extend(&["pokemon-species", &pokemon_id_or_name]);
+            .extend(&["pokemon-species", &pokemon_name]);
 
         let pokemon_species = reqwest::get(poke_api_species_request_url.clone())
             .await?
@@ -57,4 +39,22 @@ impl PokeApiClient {
             .replace('\n', " ")
             .replace("\\u000", ""))
     }
+}
+
+#[derive(Deserialize)]
+struct PokemonSpecies {
+    #[serde(rename = "flavor_text_entries")]
+    descriptions: Vec<PokemonDescription>,
+}
+
+#[derive(Deserialize)]
+struct PokemonDescription {
+    #[serde(rename = "flavor_text")]
+    text: String,
+    language: Language,
+}
+
+#[derive(Deserialize)]
+struct Language {
+    name: String,
 }
