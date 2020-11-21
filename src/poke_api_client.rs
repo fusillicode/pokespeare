@@ -12,13 +12,9 @@ impl PokeApiClient {
         &self,
         pokemon_name: &str,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        let mut poke_api_species_request_url = self.endpoint.clone();
-        poke_api_species_request_url
-            .path_segments_mut()
-            .map_err(|_| "Can't construct pokemon-species API URL")?
-            .extend(&["pokemon-species", &pokemon_name]);
+        let api_url = format!("{}/pokemon-species/{}", self.endpoint, pokemon_name);
 
-        let pokemon_species = reqwest::get(poke_api_species_request_url.clone())
+        let pokemon_species = reqwest::get(&api_url)
             .await?
             .json::<PokemonSpecies>()
             .await?;
@@ -32,7 +28,7 @@ impl PokeApiClient {
             .ok_or_else(|| {
                 format!(
                     "No '{}' descripiton found when calling PokeApi URL {:?}",
-                    language_filter, poke_api_species_request_url
+                    language_filter, api_url
                 )
             })?
             .text

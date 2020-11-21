@@ -8,14 +8,10 @@ pub struct FunTranslationsClient {
 
 impl FunTranslationsClient {
     pub async fn translate(&self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let mut fun_translations_shakespere_request_url = self.endpoint.clone();
-        fun_translations_shakespere_request_url
-            .path_segments_mut()
-            .map_err(|_| "Can't construct shakespeare.json API URL")?
-            .push("shakespeare.json");
+        let api_url = format!("{}/shakespeare.json", self.endpoint);
 
         let shakesperean_description_response = reqwest::Client::new()
-            .get(fun_translations_shakespere_request_url)
+            .get(&api_url)
             .query(&[("text", text)])
             .send()
             .await;
