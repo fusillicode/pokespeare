@@ -4,10 +4,17 @@ use serde::Deserialize;
 
 #[derive(Clone)]
 pub struct PokeApiClient {
-    pub endpoint: Url,
+    endpoint: Url,
 }
 
 impl PokeApiClient {
+    pub fn new(endpoint: &str) -> Self {
+        Self {
+            endpoint: Url::parse(endpoint)
+                .unwrap_or_else(|e| panic!("Can't parse {} as URL, error: {:?}", endpoint, e))
+        }
+    }
+
     pub async fn get_random_description(
         &self,
         pokemon_name: &str,

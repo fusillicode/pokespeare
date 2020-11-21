@@ -7,6 +7,13 @@ pub struct FunTranslationsClient {
 }
 
 impl FunTranslationsClient {
+    pub fn new(endpoint: &str) -> Self {
+        Self {
+            endpoint: Url::parse(endpoint)
+                .unwrap_or_else(|e| panic!("Can't parse {} as URL, error: {:?}", endpoint, e))
+        }
+    }
+
     pub async fn translate(&self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
         let api_url = format!("{}/shakespeare.json", self.endpoint);
 
