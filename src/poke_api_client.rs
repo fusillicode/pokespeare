@@ -18,11 +18,12 @@ impl PokeApiClient {
     pub async fn get_random_description(
         &self,
         pokemon_name: &str,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    ) -> Result<String, PokeApiClientError> {
         let api_url = format!("{}api/v2/pokemon-species/{}", self.endpoint, pokemon_name);
 
         let resp = reqwest::get(&api_url)
             .await?
+            .error_for_status()?
             .json::<PokemonSpecies>()
             .await?;
 
@@ -33,16 +34,49 @@ impl PokeApiClient {
             .filter(|d| d.language.name == language_filter)
             .choose(&mut rand::thread_rng())
             .ok_or_else(|| {
-                format!(
-                    "No '{}' descripiton found when calling PokeApi URL {:?}",
-                    language_filter, api_url
-                )
+                PokeApiClientError::DescriptionNotFound(DescriptionNotFound {
+                    api_url,
+                    language_filter: language_filter.into(),
+                })
             })?
             .text
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(" ")
             .replace("\\u000", ""))
+    }
+}
+
+#[derive(Debug)]
+pub enum PokeApiClientError {
+    DescriptionNotFound(DescriptionNotFound),
+    RequestError(reqwest::Error),
+}
+
+#[derive(Debug)]
+pub struct DescriptionNotFound {
+    language_filter: String,
+    api_url: String,
+}
+
+impl std::error::Error for PokeApiClientError {}
+
+impl std::fmt::Display for PokeApiClientError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::DescriptionNotFound(e) => write!(
+                f,
+                "No '{}' descripiton found when calling PokeApi URL {:?}",
+                e.language_filter, e.api_url
+            ),
+            Self::RequestError(e) => std::fmt::Display::fmt(e, f),
+        }
+    }
+}
+
+impl From<reqwest::Error> for PokeApiClientError {
+    fn from(error: reqwest::Error) -> Self {
+        PokeApiClientError::RequestError(error)
     }
 }
 

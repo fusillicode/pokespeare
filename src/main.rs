@@ -107,12 +107,13 @@ mod tests {
     async fn test_everything_is_fine() {
         let pokemon_name = "bulbasaur";
 
-        let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
-            .with_status(200)
-            .with_body(
-                std::fs::read_to_string("./tests/fixtures/poke_api_ok_response.json").unwrap(),
-            )
-            .create();
+        let _poke_api_mock = mock(
+            "GET",
+            format!("/api/v2/pokemon-species/{}", pokemon_name).as_str(),
+        )
+        .with_status(200)
+        .with_body(std::fs::read_to_string("./tests/fixtures/poke_api_ok_response.json").unwrap())
+        .create();
         let _fun_translations_mock = mock("GET", "/translate/shakespeare.json")
             .match_query(Matcher::Regex("text=.*".into()))
             .with_status(200)

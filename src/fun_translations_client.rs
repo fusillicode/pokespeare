@@ -14,17 +14,39 @@ impl FunTranslationsClient {
         }
     }
 
-    pub async fn translate(&self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
+    pub async fn translate(&self, text: &str) -> Result<String, FunTranslationsClientError> {
         let api_url = format!("{}translate/shakespeare.json", self.endpoint);
 
         let req = Client::new().get(&api_url).query(&[("text", text)]);
         let resp = req.send().await;
 
         Ok(resp?
+            .error_for_status()?
             .json::<ShakespereanDescription>()
             .await?
             .contents
             .translated_text)
+    }
+}
+
+#[derive(Debug)]
+pub enum FunTranslationsClientError {
+    RequestError(reqwest::Error),
+}
+
+impl std::error::Error for FunTranslationsClientError {}
+
+impl std::fmt::Display for FunTranslationsClientError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::RequestError(e) => std::fmt::Display::fmt(e, f),
+        }
+    }
+}
+
+impl From<reqwest::Error> for FunTranslationsClientError {
+    fn from(error: reqwest::Error) -> Self {
+        FunTranslationsClientError::RequestError(error)
     }
 }
 
