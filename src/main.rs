@@ -69,3 +69,37 @@ struct ShakespereanDescriptionApiResponse {
     name: String,
     description: String,
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_everything_is_fine() {
+        assert!(true);
+    }
+
+    // #[test]
+    // fn test_poke_api_returns_status_code_different_from_200() {
+    //     assert!(true);
+    // }
+
+    // #[test]
+    // fn test_poke_apis_returns_200_with_unexpected_body() {
+    //     assert_eq!(true, true);
+    // }
+
+    // #[test]
+    // fn test_poke_apis_returns_200_without_a_traslatable_description() {
+    //     assert_eq!(true, true);
+    // }
+
+    // #[test]
+    // fn test_fun_translations_returns_status_code_different_from_200() {
+    //     assert_eq!(true, true);
+    // }
+
+    // #[test]
+    // fn test_fun_translations_returns_200_with_unexpected_body() {
+    //     assert_eq!(true, true);
+    // }
+}
