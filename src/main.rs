@@ -77,7 +77,7 @@ struct ShakespereanDescriptionApiResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::{test, test::TestRequest, App};
+    use actix_web::{dev::ServiceResponse, test, test::TestRequest};
     use mockito::{mock, Matcher};
 
     fn set_up_mocks() -> (PokeApiClient, FunTranslationsClient) {
@@ -92,11 +92,22 @@ mod tests {
         )
     }
 
+    async fn call_get_shakesperean_description_service(pokemon_name: &str) -> ServiceResponse {
+        let (poke_api_client, fun_translations_client) = set_up_mocks();
+        let mut app = test::init_service(App::new().configure(config_app)).await;
+        let req = TestRequest::get()
+            .uri(&format!("/pokemon/{}", pokemon_name))
+            .data(poke_api_client)
+            .data(fun_translations_client)
+            .to_request();
+        test::call_service(&mut app, req).await
+    }
+
     #[actix_rt::test]
     async fn test_everything_is_fine() {
-        let (poke_api_client, fun_translations_client) = set_up_mocks();
+        let pokemon_name = "bulbasaur";
 
-        let _poke_api_mock = mock("GET", "/api/v2/pokemon-species/bulbasaur")
+        let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
             .with_status(200)
             .with_body(
                 std::fs::read_to_string("./tests/fixtures/poke_api_ok_response.json").unwrap(),
@@ -111,18 +122,12 @@ mod tests {
             )
             .create();
 
-        let mut app = test::init_service(App::new().configure(config_app)).await;
-        let req = TestRequest::get()
-            .uri("/pokemon/bulbasaur")
-            .data(poke_api_client)
-            .data(fun_translations_client)
-            .to_request();
-        let resp = test::call_service(&mut app, req).await;
+        let resp = call_get_shakesperean_description_service(pokemon_name).await;
 
         assert!(resp.status().is_success());
         assert_eq!(
             ShakespereanDescriptionApiResponse {
-                name: "bulbasaur".into(),
+                name: pokemon_name.into(),
                 description: "A strange seed wast planted on its back at birth. The plant sprouts and grows with this pokémon.".into(),
             },
             test::read_body_json(resp).await
