@@ -4,12 +4,12 @@ mod poke_api_client;
 
 use actix_slog::StructuredLogger;
 use actix_web::middleware::Compress;
-use actix_web::web::{Data, Path};
+use actix_web::web::{Data, Path, ServiceConfig};
 use actix_web::{get, App, Error, HttpResponse, HttpServer};
 use fun_translations_client::FunTranslationsClient;
 use log_helpers::*;
 use poke_api_client::PokeApiClient;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -18,6 +18,21 @@ async fn main() -> std::io::Result<()> {
 
     let listen_addr =
         std::env::var("POKESPEARE_LISTEN_ADDR").expect("Missing required POKESPEARE_LISTEN_ADDR");
+
+    info!(log, "Start server"; "listen_addr" => ?listen_addr);
+    HttpServer::new(move || {
+        App::new()
+            .wrap(Compress::default())
+            .wrap(StructuredLogger::new(log.clone()))
+            .data(log.clone())
+            .configure(config_app)
+    })
+    .bind(listen_addr)?
+    .run()
+    .await
+}
+
+fn config_app(cfg: &mut ServiceConfig) {
     let poke_api_endpoint =
         std::env::var("POKE_API_ENDPOINT").expect("Missing required POKE_API_ENDPOINT");
     let fun_translations_api_endpoint = std::env::var("FUN_TRANSLATIONS_API_ENDPOINT")
@@ -26,24 +41,13 @@ async fn main() -> std::io::Result<()> {
     let poke_api_client = PokeApiClient::new(&poke_api_endpoint);
     let fun_translations_client = FunTranslationsClient::new(&fun_translations_api_endpoint);
 
-    info!(log, "Start server"; "listen_addr" => ?listen_addr);
-    HttpServer::new(move || {
-        App::new()
-            .wrap(Compress::default())
-            .wrap(StructuredLogger::new(log.clone()))
-            .data(log.clone())
-            .data(poke_api_client.clone())
-            .data(fun_translations_client.clone())
-            .service(get_shakesperean_description)
-    })
-    .bind(listen_addr)?
-    .run()
-    .await
+    cfg.data(poke_api_client);
+    cfg.data(fun_translations_client);
+    cfg.service(get_shakesperean_description);
 }
 
 #[get("/pokemon/{pokemon_name}")]
 async fn get_shakesperean_description(
-    _log: Data<Logger>,
     poke_api_client: Data<PokeApiClient>,
     fun_translations_client: Data<FunTranslationsClient>,
     pokemon_name: Path<String>,
@@ -64,7 +68,7 @@ async fn get_shakesperean_description(
     }))
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
 struct ShakespereanDescriptionApiResponse {
     name: String,
     description: String,
@@ -72,34 +76,81 @@ struct ShakespereanDescriptionApiResponse {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use actix_web::{test, test::TestRequest, App};
+    use mockito::{mock, Matcher};
 
-    #[test]
-    fn test_everything_is_fine() {
-        assert!(true);
+    fn set_up_mocks() -> (PokeApiClient, FunTranslationsClient) {
+        let mock_server_url = mockito::server_url();
+
+        std::env::set_var("POKE_API_ENDPOINT", &mock_server_url);
+        std::env::set_var("FUN_TRANSLATIONS_API_ENDPOINT", &mock_server_url);
+
+        (
+            PokeApiClient::new(&mock_server_url),
+            FunTranslationsClient::new(&mock_server_url),
+        )
     }
 
-    // #[test]
-    // fn test_poke_api_returns_status_code_different_from_200() {
+    #[actix_rt::test]
+    async fn test_everything_is_fine() {
+        let (poke_api_client, fun_translations_client) = set_up_mocks();
+
+        let _poke_api_mock = mock("GET", "/api/v2/pokemon-species/bulbasaur")
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("./tests/fixtures/poke_api_ok_response.json").unwrap(),
+            )
+            .create();
+        let _fun_translations_mock = mock("GET", "/translate/shakespeare.json")
+            .match_query(Matcher::Regex("text=.*".into()))
+            .with_status(200)
+            .with_body(
+                std::fs::read_to_string("./tests/fixtures/fun_translations_ok_response.json")
+                    .unwrap(),
+            )
+            .create();
+
+        let mut app = test::init_service(App::new().configure(config_app)).await;
+        let req = TestRequest::get()
+            .uri("/pokemon/bulbasaur")
+            .data(poke_api_client)
+            .data(fun_translations_client)
+            .to_request();
+        let resp = test::call_service(&mut app, req).await;
+
+        assert!(resp.status().is_success());
+        assert_eq!(
+            ShakespereanDescriptionApiResponse {
+                name: "bulbasaur".into(),
+                description: "A strange seed wast planted on its back at birth. The plant sprouts and grows with this pokémon.".into(),
+            },
+            test::read_body_json(resp).await
+        );
+    }
+
+    // #[actix_rt::test]
+    // async fn test_poke_api_returns_status_code_different_from_200() {
     //     assert!(true);
     // }
 
-    // #[test]
-    // fn test_poke_apis_returns_200_with_unexpected_body() {
+    // #[actix_rt::test]
+    // async fn test_poke_apis_returns_200_with_unexpected_body() {
     //     assert_eq!(true, true);
     // }
 
-    // #[test]
-    // fn test_poke_apis_returns_200_without_a_traslatable_description() {
+    // #[actix_rt::test]
+    // async fn test_poke_apis_returns_200_without_a_traslatable_description() {
     //     assert_eq!(true, true);
     // }
 
-    // #[test]
-    // fn test_fun_translations_returns_status_code_different_from_200() {
+    // #[actix_rt::test]
+    // async fn test_fun_translations_returns_status_code_different_from_200() {
     //     assert_eq!(true, true);
     // }
 
-    // #[test]
-    // fn test_fun_translations_returns_200_with_unexpected_body() {
+    // #[actix_rt::test]
+    // async fn test_fun_translations_returns_200_with_unexpected_body() {
     //     assert_eq!(true, true);
     // }
 }

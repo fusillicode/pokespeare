@@ -15,15 +15,12 @@ impl FunTranslationsClient {
     }
 
     pub async fn translate(&self, text: &str) -> Result<String, Box<dyn std::error::Error>> {
-        let api_url = format!("{}/shakespeare.json", self.endpoint);
+        let api_url = format!("{}translate/shakespeare.json", self.endpoint);
 
-        let response = Client::new()
-            .get(&api_url)
-            .query(&[("text", text)])
-            .send()
-            .await;
+        let req = Client::new().get(&api_url).query(&[("text", text)]);
+        let resp = req.send().await;
 
-        Ok(response?
+        Ok(resp?
             .json::<ShakespereanDescription>()
             .await?
             .contents
@@ -31,12 +28,12 @@ impl FunTranslationsClient {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct ShakespereanDescription {
     contents: ShakespereanDescriptionContents,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct ShakespereanDescriptionContents {
     #[serde(rename = "translated")]
     translated_text: String,

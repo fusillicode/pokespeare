@@ -4,8 +4,8 @@
 ```
 RUST_LOG=info \
 POKESPEARE_LISTEN_ADDR=localhost:8080 \
-POKE_API_ENDPOINT=https://pokeapi.co/api/v2 \
-FUN_TRANSLATIONS_API_ENDPOINT=https://api.funtranslations.com/translate \
+POKE_API_ENDPOINT=https://pokeapi.co \
+FUN_TRANSLATIONS_API_ENDPOINT=https://api.funtranslations.com \
 cargo run
 ```
 
@@ -15,8 +15,8 @@ docker build -t pokespeare && \
   docker run pokespeare \
     --env RUST_LOG=info \
     --env POKESPEARE_LISTEN_ADDR=localhost:8080 \
-    --env POKE_API_ENDPOINT=https://pokeapi.co/api/v2 \
-    --env FUN_TRANSLATIONS_API_ENDPOINT=https://api.funtranslations.com/translate
+    --env POKE_API_ENDPOINT=https://pokeapi.co \
+    --env FUN_TRANSLATIONS_API_ENDPOINT=https://api.funtranslations.com
 ```
 
 ## Call the service

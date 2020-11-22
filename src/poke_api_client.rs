@@ -19,15 +19,15 @@ impl PokeApiClient {
         &self,
         pokemon_name: &str,
     ) -> Result<String, Box<dyn std::error::Error>> {
-        let api_url = format!("{}/pokemon-species/{}", self.endpoint, pokemon_name);
+        let api_url = format!("{}api/v2/pokemon-species/{}", self.endpoint, pokemon_name);
 
-        let response = reqwest::get(&api_url)
+        let resp = reqwest::get(&api_url)
             .await?
             .json::<PokemonSpecies>()
             .await?;
 
         let language_filter = "en";
-        Ok(response
+        Ok(resp
             .descriptions
             .iter()
             .filter(|d| d.language.name == language_filter)
@@ -39,25 +39,27 @@ impl PokeApiClient {
                 )
             })?
             .text
-            .replace('\n', " ")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
             .replace("\\u000", ""))
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct PokemonSpecies {
     #[serde(rename = "flavor_text_entries")]
     descriptions: Vec<PokemonDescription>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct PokemonDescription {
     #[serde(rename = "flavor_text")]
     text: String,
     language: Language,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Language {
     name: String,
 }
