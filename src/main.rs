@@ -136,26 +136,91 @@ mod tests {
 
     // #[actix_rt::test]
     // async fn test_poke_api_returns_status_code_different_from_200() {
-    //     assert!(true);
+    //     let pokemon_name = "bulbasaur";
+
+    //     let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
+    //         .with_status(404)
+    //         .create();
+
+    //     let resp = call_get_shakesperean_description_service(pokemon_name).await;
+
+    //     assert!(resp.status().is_server_error());
     // }
 
     // #[actix_rt::test]
     // async fn test_poke_apis_returns_200_with_unexpected_body() {
-    //     assert_eq!(true, true);
+    //     let pokemon_name = "bulbasaur";
+
+    //     let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
+    //         .with_status(200)
+    //         .with_body("That's the body you're looking for...")
+    //         .create();
+
+    //     let resp = call_get_shakesperean_description_service(pokemon_name).await;
+
+    //     assert!(resp.status().is_server_error());
     // }
 
     // #[actix_rt::test]
     // async fn test_poke_apis_returns_200_without_a_traslatable_description() {
-    //     assert_eq!(true, true);
+    //     let pokemon_name = "bulbasaur";
+
+    //     let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
+    //     .with_status(200)
+    //     .with_body(
+    //         std::fs::read_to_string("./tests/fixtures/poke_api_not_translatable_description_response.json").unwrap(),
+    //     )
+    //     .create();
+
+    //     let resp = call_get_shakesperean_description_service(pokemon_name).await;
+
+    //     assert!(resp.status().is_server_error());
     // }
 
     // #[actix_rt::test]
     // async fn test_fun_translations_returns_status_code_different_from_200() {
-    //     assert_eq!(true, true);
+    //     let pokemon_name = "bulbasaur";
+
+    //     let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
+    //         .with_status(200)
+    //         .with_body(
+    //             std::fs::read_to_string("./tests/fixtures/poke_api_ok_response.json").unwrap(),
+    //         )
+    //         .create();
+
+    //     let _fun_translations_mock = mock("GET", "/translate/shakespeare.json")
+    //     .match_query(Matcher::Regex("text=.*".into()))
+    //     .with_status(429)
+    //     .with_body(
+    //         std::fs::read_to_string("./tests/fixtures/fun_translations_ok_response.json")
+    //             .unwrap(),
+    //     )
+    //     .create();
+
+    //     let resp = call_get_shakesperean_description_service(pokemon_name).await;
+
+    //     assert!(resp.status().is_server_error());
     // }
 
     // #[actix_rt::test]
     // async fn test_fun_translations_returns_200_with_unexpected_body() {
-    //     assert_eq!(true, true);
+    //     let pokemon_name = "bulbasaur";
+
+    //     let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
+    //         .with_status(200)
+    //         .with_body(
+    //             std::fs::read_to_string("./tests/fixtures/poke_api_ok_response.json").unwrap(),
+    //         )
+    //         .create();
+
+    //     let _fun_translations_mock = mock("GET", "/translate/shakespeare.json")
+    //     .match_query(Matcher::Regex("text=.*".into()))
+    //     .with_status(429)
+    //     .with_body("That's the body you're looking for...")
+    //     .create();
+
+    //     let resp = call_get_shakesperean_description_service(pokemon_name).await;
+
+    //     assert!(resp.status().is_server_error());
     // }
 }
