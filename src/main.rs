@@ -138,9 +138,12 @@ mod tests {
     async fn test_poke_api_returns_status_code_different_from_200() {
         let pokemon_name = "bulbasaur";
 
-        let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
-            .with_status(404)
-            .create();
+        let _poke_api_mock = mock(
+            "GET",
+            format!("/api/v2/pokemon-species/{}", pokemon_name).as_str(),
+        )
+        .with_status(404)
+        .create();
 
         let resp = call_get_shakesperean_description_service(pokemon_name).await;
 

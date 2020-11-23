@@ -1,6 +1,9 @@
 use rand::prelude::*;
+use reqwest::Error as ReqwestError;
 use reqwest::Url;
 use serde::Deserialize;
+use std::error::Error as StdError;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Clone)]
 pub struct PokeApiClient {
@@ -50,7 +53,7 @@ impl PokeApiClient {
 #[derive(Debug)]
 pub enum PokeApiClientError {
     DescriptionNotFound(DescriptionNotFound),
-    RequestError(reqwest::Error),
+    RequestError(ReqwestError),
 }
 
 #[derive(Debug)]
@@ -59,23 +62,38 @@ pub struct DescriptionNotFound {
     api_url: String,
 }
 
-impl std::error::Error for PokeApiClientError {}
+impl StdError for DescriptionNotFound {}
 
-impl std::fmt::Display for PokeApiClientError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for DescriptionNotFound {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(
+            f,
+            "No '{}' descripiton found when calling PokeApi URL {:?}",
+            self.language_filter, self.api_url
+        )
+    }
+}
+
+impl StdError for PokeApiClientError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Self::DescriptionNotFound(e) => write!(
-                f,
-                "No '{}' descripiton found when calling PokeApi URL {:?}",
-                e.language_filter, e.api_url
-            ),
-            Self::RequestError(e) => std::fmt::Display::fmt(e, f),
+            Self::DescriptionNotFound(e) => Some(e),
+            Self::RequestError(e) => Some(e),
         }
     }
 }
 
-impl From<reqwest::Error> for PokeApiClientError {
-    fn from(error: reqwest::Error) -> Self {
+impl Display for PokeApiClientError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match self {
+            Self::DescriptionNotFound(e) => Display::fmt(e, f),
+            Self::RequestError(e) => Display::fmt(e, f),
+        }
+    }
+}
+
+impl From<ReqwestError> for PokeApiClientError {
+    fn from(error: ReqwestError) -> Self {
         PokeApiClientError::RequestError(error)
     }
 }

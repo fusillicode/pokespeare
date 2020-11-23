@@ -1,5 +1,8 @@
+use reqwest::Error as ReqwestError;
 use reqwest::{Client, Url};
 use serde::Deserialize;
+use std::error::Error as StdError;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Clone)]
 pub struct FunTranslationsClient {
@@ -30,18 +33,22 @@ impl FunTranslationsClient {
 }
 
 #[derive(Debug)]
-pub struct FunTranslationsClientError(pub reqwest::Error);
+pub struct FunTranslationsClientError(pub ReqwestError);
 
-impl std::error::Error for FunTranslationsClientError {}
-
-impl std::fmt::Display for FunTranslationsClientError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        std::fmt::Display::fmt(&self.0, f)
+impl StdError for FunTranslationsClientError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        Some(&self.0)
     }
 }
 
-impl From<reqwest::Error> for FunTranslationsClientError {
-    fn from(error: reqwest::Error) -> Self {
+impl Display for FunTranslationsClientError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(&self.0, f)
+    }
+}
+
+impl From<ReqwestError> for FunTranslationsClientError {
+    fn from(error: ReqwestError) -> Self {
         FunTranslationsClientError(error)
     }
 }
