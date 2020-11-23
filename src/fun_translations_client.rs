@@ -30,23 +30,19 @@ impl FunTranslationsClient {
 }
 
 #[derive(Debug)]
-pub enum FunTranslationsClientError {
-    RequestError(reqwest::Error),
-}
+pub struct FunTranslationsClientError(pub reqwest::Error);
 
 impl std::error::Error for FunTranslationsClientError {}
 
 impl std::fmt::Display for FunTranslationsClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::RequestError(e) => std::fmt::Display::fmt(e, f),
-        }
+        std::fmt::Display::fmt(&self.0, f)
     }
 }
 
 impl From<reqwest::Error> for FunTranslationsClientError {
     fn from(error: reqwest::Error) -> Self {
-        FunTranslationsClientError::RequestError(error)
+        FunTranslationsClientError(error)
     }
 }
 

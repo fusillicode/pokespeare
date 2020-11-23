@@ -1,3 +1,4 @@
+mod errors;
 mod fun_translations_client;
 mod log_helpers;
 mod poke_api_client;
@@ -54,13 +55,11 @@ async fn get_shakesperean_description(
 ) -> Result<HttpResponse, Error> {
     let pokemon_description = poke_api_client
         .get_random_description(&pokemon_name)
-        .await
-        .unwrap();
+        .await?;
 
     let shakesperean_description = fun_translations_client
         .translate(&pokemon_description)
-        .await
-        .unwrap();
+        .await?;
 
     Ok(HttpResponse::Ok().json(ShakespereanDescriptionApiResponse {
         name: pokemon_name.to_string(),
@@ -135,18 +134,18 @@ mod tests {
         );
     }
 
-    // #[actix_rt::test]
-    // async fn test_poke_api_returns_status_code_different_from_200() {
-    //     let pokemon_name = "bulbasaur";
+    #[actix_rt::test]
+    async fn test_poke_api_returns_status_code_different_from_200() {
+        let pokemon_name = "bulbasaur";
 
-    //     let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
-    //         .with_status(404)
-    //         .create();
+        let _poke_api_mock = mock("GET", format!("/api/v2/pokemon-species/{}", pokemon_name).as_str())
+            .with_status(404)
+            .create();
 
-    //     let resp = call_get_shakesperean_description_service(pokemon_name).await;
+        let resp = call_get_shakesperean_description_service(pokemon_name).await;
 
-    //     assert!(resp.status().is_server_error());
-    // }
+        assert_eq!(404, resp.status());
+    }
 
     // #[actix_rt::test]
     // async fn test_poke_apis_returns_200_with_unexpected_body() {
