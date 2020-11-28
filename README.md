@@ -1,7 +1,11 @@
 # pokespeare
 
+REST Web Service exposing a single API that, given a Pokémon name, returns its "Shakespearean" description.
+
+Under the hood it uses [PokéAPI](https://pokeapi.co/) and [Shakespeare translator](https://funtranslations.com/api/shakespeare).
+
 ## Local build & run
-Install [rustup](https://rustup.rs/) and then run:
+Install [rustup](https://www.rust-lang.org/tools/install) and then run:
 ```
 RUST_LOG=info \
 POKESPEARE_LISTEN_ADDR=0.0.0.0:8080 \
