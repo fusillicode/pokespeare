@@ -3,7 +3,9 @@ use crate::poke_api_client::PokeApiClientError;
 use actix_web::error::ResponseError;
 use actix_web::http::StatusCode;
 use actix_web::HttpResponse;
+use reqwest::Error as ReqwestError;
 use reqwest::StatusCode as ReqwestStatusCode;
+use serde::{Deserialize, Serialize};
 
 impl ResponseError for FunTranslationsClientError {
     fn status_code(&self) -> StatusCode {
@@ -17,9 +19,9 @@ impl ResponseError for FunTranslationsClientError {
         match self.0.status() {
             Some(status_code) => {
                 HttpResponse::build(map_reqwest_to_actix_status_code(Some(status_code)))
-                    .body(self.0.to_string())
+                    .json(JsonErrorResponseBody::new(&self.0))
             }
-            None => HttpResponse::InternalServerError().body(self.0.to_string()),
+            None => HttpResponse::InternalServerError().json(JsonErrorResponseBody::new(&self.0)),
         }
     }
 }
@@ -34,12 +36,15 @@ impl ResponseError for PokeApiClientError {
 
     fn error_response(&self) -> HttpResponse {
         match self {
-            PokeApiClientError::DescriptionNotFound(_) => {
-                HttpResponse::NotFound().body(self.to_string())
+            PokeApiClientError::DescriptionNotFound(e) => {
+                HttpResponse::NotFound().json(JsonErrorResponseBody {
+                    code: 404,
+                    message: e.to_string(),
+                })
             }
             PokeApiClientError::RequestError(e) => {
                 HttpResponse::build(map_reqwest_to_actix_status_code(e.status()))
-                    .body(self.to_string())
+                    .json(JsonErrorResponseBody::new(&e))
             }
         }
     }
@@ -54,4 +59,19 @@ fn map_reqwest_to_actix_status_code(reqwest_status_code: Option<ReqwestStatusCod
             )
         })
     ).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct JsonErrorResponseBody {
+    pub code: u16,
+    pub message: String,
+}
+
+impl JsonErrorResponseBody {
+    fn new(err: &ReqwestError) -> Self {
+        Self {
+            code: map_reqwest_to_actix_status_code(err.status()).as_u16(),
+            message: err.to_string(),
+        }
+    }
 }
