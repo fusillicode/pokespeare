@@ -19,7 +19,6 @@ RUN rm -rf src
 # Proceed with "real" builds: test build in case of NOT "prod" release and release build otherwise
 COPY . .
 RUN if [ ! "${ENVIRONMENT}" = "prod" ]; then cargo test --no-run; else cargo build --release; fi
-RUN ls -la src/
 
 
 FROM debian:buster-slim
