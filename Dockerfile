@@ -2,11 +2,6 @@ FROM rust:1.48-buster AS base
 
 ARG ENVIRONMENT=prod
 
-# Install the basics
-RUN apt-get -y update && apt-get -y --no-install-recommends install ca-certificates \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /pokespeare
 
 # Setup of dummy packages `src`s to cache deps
@@ -25,7 +20,7 @@ RUN if [ ! "${ENVIRONMENT}" = "prod" ]; then cargo test --no-run; else cargo bui
 RUN ls -la src/
 
 
-FROM debian:stable-slim
+FROM debian:buster-slim
 
 RUN apt-get -y update && apt-get -y --no-install-recommends install ca-certificates \
   && apt-get clean \
