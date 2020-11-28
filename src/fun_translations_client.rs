@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+/// HTTP client to interact with FunTranslations API.
 #[derive(Clone)]
 pub struct FunTranslationsClient {
     pub endpoint: Url,
@@ -17,6 +18,11 @@ impl FunTranslationsClient {
         }
     }
 
+    /// Given a text, gets the shakespearean translation by calling FunTranslation API.
+    ///
+    /// In case of errors, it transparently returns them.
+    /// Note: the called FunTranslation API is throttled and returns an error and a status code of 429 in case of too
+    /// many requests (at the time of writing the limits are 5 requests per hour).
     pub async fn translate(&self, text: &str) -> Result<String, FunTranslationsClientError> {
         let api_url = format!("{}translate/shakespeare.json", self.endpoint);
 
@@ -25,7 +31,7 @@ impl FunTranslationsClient {
 
         Ok(resp?
             .error_for_status()?
-            .json::<ShakespereanDescription>()
+            .json::<ShakespeareanDescription>()
             .await?
             .contents
             .translated_text)
@@ -54,12 +60,12 @@ impl From<ReqwestError> for FunTranslationsClientError {
 }
 
 #[derive(Debug, Deserialize)]
-struct ShakespereanDescription {
-    contents: ShakespereanDescriptionContents,
+struct ShakespeareanDescription {
+    contents: ShakespeareanDescriptionContents,
 }
 
 #[derive(Debug, Deserialize)]
-struct ShakespereanDescriptionContents {
+struct ShakespeareanDescriptionContents {
     #[serde(rename = "translated")]
     translated_text: String,
 }

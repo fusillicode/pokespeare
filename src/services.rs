@@ -1,9 +1,12 @@
 use crate::fun_translations_client::FunTranslationsClient;
 use crate::poke_api_client::PokeApiClient;
-use crate::services_api_models::ShakespereanDescriptionApiResponse;
+use crate::services_api_models::ShakespeareanDescriptionApiResponse;
 use actix_web::web::{Data, Path, ServiceConfig};
 use actix_web::{get, Error, HttpResponse};
 
+/// App services configuration utility to setup required App `Data` and API services.
+///
+/// Panics in case of missing required env vars.
 pub fn config_app(cfg: &mut ServiceConfig) {
     let poke_api_endpoint =
         std::env::var("POKE_API_ENDPOINT").expect("Missing required POKE_API_ENDPOINT");
@@ -15,11 +18,15 @@ pub fn config_app(cfg: &mut ServiceConfig) {
 
     cfg.data(poke_api_client);
     cfg.data(fun_translations_client);
-    cfg.service(get_shakesperean_description);
+    cfg.service(get_shakespearean_description);
 }
 
+/// API service that, given a Pokémon name, returns its "Shakespearean" description.
+///
+/// In case of errors, returns a JSON reponse with a proper status code (`code`) and an indicative error description
+/// (`message`).
 #[get("/pokemon/{pokemon_name}")]
-async fn get_shakesperean_description(
+async fn get_shakespearean_description(
     poke_api_client: Data<PokeApiClient>,
     fun_translations_client: Data<FunTranslationsClient>,
     pokemon_name: Path<String>,
@@ -28,12 +35,14 @@ async fn get_shakesperean_description(
         .get_random_description(&pokemon_name)
         .await?;
 
-    let shakesperean_description = fun_translations_client
+    let shakespearean_description = fun_translations_client
         .translate(&pokemon_description)
         .await?;
 
-    Ok(HttpResponse::Ok().json(ShakespereanDescriptionApiResponse {
-        name: pokemon_name.to_string(),
-        description: shakesperean_description,
-    }))
+    Ok(
+        HttpResponse::Ok().json(ShakespeareanDescriptionApiResponse {
+            name: pokemon_name.to_string(),
+            description: shakespearean_description,
+        }),
+    )
 }

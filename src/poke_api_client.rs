@@ -5,6 +5,7 @@ use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+/// HTTP client to interact with PokeApi API.
 #[derive(Clone)]
 pub struct PokeApiClient {
     endpoint: Url,
@@ -18,6 +19,12 @@ impl PokeApiClient {
         }
     }
 
+    /// Given a Pokémon name, gets one of its English description randomly.
+    ///
+    /// In case of no available English descriptions, returns `Err(DescriptionNotFound)`.
+    /// In case of any other errors, it transparently returns them.
+    /// Note: the descriptions fetched from PokeApi API are filtered by default by "en" language and the randomly picked
+    /// one is cleaned from unneeded whitespaces and NULL unicode chars.
     pub async fn get_random_description(
         &self,
         pokemon_name: &str,
@@ -38,7 +45,8 @@ impl PokeApiClient {
                     language_filter: language_filter.into(),
                 })
             })?
-            .text.as_str();
+            .text
+            .as_str();
         Ok(Self::cleanup_description(description))
     }
 

@@ -7,6 +7,23 @@ use reqwest::Error as ReqwestError;
 use reqwest::StatusCode as ReqwestStatusCode;
 use serde::{Deserialize, Serialize};
 
+/// Representation of an error response body.
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct JsonErrorResponseBody {
+    pub code: u16,
+    pub message: String,
+}
+
+impl JsonErrorResponseBody {
+    fn new(err: &ReqwestError) -> Self {
+        Self {
+            code: map_reqwest_to_actix_status_code(err.status()).as_u16(),
+            message: err.to_string(),
+        }
+    }
+}
+
+/// Make `FunTranslationsClientError` an `actix_web` "citizen" by implementing `actix_web::error::ResponseError`.
 impl ResponseError for FunTranslationsClientError {
     fn status_code(&self) -> StatusCode {
         match self.0.status() {
@@ -26,6 +43,7 @@ impl ResponseError for FunTranslationsClientError {
     }
 }
 
+/// Make `PokeApiClientError` an `actix_web` "citizen" by implementing `actix_web::error::ResponseError`.
 impl ResponseError for PokeApiClientError {
     fn status_code(&self) -> StatusCode {
         match self {
@@ -50,6 +68,10 @@ impl ResponseError for PokeApiClientError {
     }
 }
 
+/// Utility to convert an optional `reqwest::StatusCode` into a `actix_web::http::StatusCode`.
+/// With no input status code, returns a `actix_web::http::StatusCode::INTERNAL_SERVER_ERROR`.
+///
+/// Panics if it can't get a valid `actix_web::http::StatusCode`.
 fn map_reqwest_to_actix_status_code(reqwest_status_code: Option<ReqwestStatusCode>) -> StatusCode {
     reqwest_status_code.map(|s|
         StatusCode::from_u16(s.as_u16()).unwrap_or_else(|e| {
@@ -59,19 +81,4 @@ fn map_reqwest_to_actix_status_code(reqwest_status_code: Option<ReqwestStatusCod
             )
         })
     ).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct JsonErrorResponseBody {
-    pub code: u16,
-    pub message: String,
-}
-
-impl JsonErrorResponseBody {
-    fn new(err: &ReqwestError) -> Self {
-        Self {
-            code: map_reqwest_to_actix_status_code(err.status()).as_u16(),
-            message: err.to_string(),
-        }
-    }
 }
