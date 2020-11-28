@@ -6,7 +6,7 @@ use actix_web::{get, Error, HttpResponse};
 
 /// App services configuration utility to setup required App `Data` and API services.
 ///
-/// Panics in case of missing required env vars.
+/// Panics in case of missing or invalid (e.g not URLs) required env vars.
 pub fn config_app(cfg: &mut ServiceConfig) {
     let poke_api_endpoint =
         std::env::var("POKE_API_ENDPOINT").expect("Missing required POKE_API_ENDPOINT");
