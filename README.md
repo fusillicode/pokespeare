@@ -1,6 +1,6 @@
 # pokespeare
 
-[![CI](https://github.com/fusillicode/pokespeare/workflows/Rust/badge.svg)](https://github.com/fusillicode/pokespeare/actions)
+[![CI](https://github.com/fusillicode/pokespeare/workflows/CI/badge.svg)](https://github.com/fusillicode/pokespeare/actions)
 [![Coverage Status](https://coveralls.io/repos/github/fusillicode/pokespeare/badge.svg?branch=master)](https://coveralls.io/github/fusillicode/pokespeare?branch=master)
 
 REST Web Service exposing a single API that, given a Pokémon name, returns its "Shakespearean" description.
