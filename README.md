@@ -1,5 +1,7 @@
 # pokespeare
 
+[![CI](https://github.com/fusillicode/pokespeare/workflows/Rust/badge.svg)](https://github.com/fusillicode/pokespeare/actions)
+
 REST Web Service exposing a single API that, given a Pokémon name, returns its "Shakespearean" description.
 
 Under the hood it uses [PokéAPI](https://pokeapi.co/) and [Shakespeare translator](https://funtranslations.com/api/shakespeare).
