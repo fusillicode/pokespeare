@@ -8,7 +8,7 @@ Under the hood it uses [PokéAPI](https://pokeapi.co/) and [Shakespeare translat
 
 ## Local build & run
 Install [rustup](https://www.rust-lang.org/tools/install) and then run:
-```
+```sh
 RUST_LOG=info \
 POKESPEARE_LISTEN_ADDR=0.0.0.0:8080 \
 POKE_API_ENDPOINT=https://pokeapi.co \
@@ -17,7 +17,7 @@ cargo run
 ```
 
 ## Docker build & run
-```
+```sh
 docker build . -t pokespeare && \
 docker run \
   --env RUST_LOG=info \
@@ -29,12 +29,16 @@ docker run \
 ```
 
 ## Call the service
-`curl -v 0.0.0.0:8080/pokemon/bulbasaur`
+```sh
+curl -v 0.0.0.0:8080/pokemon/bulbasaur`
+```
 
 ## Call the service & pretty print its output (requires [jq](https://stedolan.github.io/jq/download/))
-`curl -v 0.0.0.0:8080/pokemon/bulbasaur | jq`
+```sh
+curl -v 0.0.0.0:8080/pokemon/bulbasaur | jq
+```
 
 ## Test run
-```
+```sh
 cargo test
 ```
