@@ -31,22 +31,33 @@ impl PokeApiClient {
             .await?;
 
         let language_filter = "en";
-        Ok(resp
-            .descriptions
-            .iter()
-            .filter(|d| d.language.name == language_filter)
-            .choose(&mut rand::thread_rng())
+        let description = Self::pick_random_description(&resp.descriptions, language_filter)
             .ok_or_else(|| {
                 PokeApiClientError::DescriptionNotFound(DescriptionNotFound {
                     api_url,
                     language_filter: language_filter.into(),
                 })
             })?
-            .text
+            .text.as_str();
+        Ok(Self::cleanup_description(description))
+    }
+
+    fn pick_random_description<'a>(
+        descriptions: &'a [PokemonDescription],
+        lang: &str,
+    ) -> Option<&'a PokemonDescription> {
+        descriptions
+            .iter()
+            .filter(|d| d.language.name == lang)
+            .choose(&mut rand::thread_rng())
+    }
+
+    fn cleanup_description(description: &str) -> String {
+        description
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(" ")
-            .replace("\\u000", ""))
+            .replace("\\u000", "")
     }
 }
 
