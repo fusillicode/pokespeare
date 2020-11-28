@@ -2,7 +2,9 @@ FROM rust:1.48-buster AS base
 
 ARG ENVIRONMENT=prod
 
-WORKDIR /pokespeare
+RUN useradd -m red
+
+WORKDIR /home/red/pokespeare
 
 # Setup of dummy packages `src`s to cache deps
 RUN mkdir -p src && echo "fn main() {}" > ./src/main.rs
@@ -22,10 +24,14 @@ RUN ls -la src/
 
 FROM debian:buster-slim
 
+RUN useradd -m red
+
+WORKDIR /home/red/bin
+
 RUN apt-get -y update && apt-get -y --no-install-recommends install ca-certificates \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-COPY --from=base /pokespeare/target/release/pokespeare /usr/local/bin/pokespeare
+COPY --from=base /home/red/pokespeare/target/release/pokespeare .
 
-ENTRYPOINT ["pokespeare"]
+ENTRYPOINT ["./pokespeare"]
