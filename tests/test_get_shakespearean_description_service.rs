@@ -29,7 +29,7 @@ async fn test_happy_path() {
 
     let resp = call_get_shakespearean_description_service(pokemon_name).await;
 
-    assert!(resp.status().is_success());
+    assert_eq!(200, resp.status());
     assert_eq!(
         ShakespeareanDescriptionApiResponse {
             name: pokemon_name.into(),
@@ -76,7 +76,7 @@ async fn test_poke_apis_returns_200_with_unexpected_body() {
 
     let resp = call_get_shakespearean_description_service(pokemon_name).await;
 
-    assert!(resp.status().is_server_error());
+    assert_eq!(500, resp.status());
     assert_eq!(
         ApiErrorResponseBody {
             code: ApiErrorResponseCode::PokeApiError,
@@ -201,7 +201,7 @@ async fn test_fun_translations_returns_200_with_unexpected_body() {
 
     let resp = call_get_shakespearean_description_service(pokemon_name).await;
 
-    assert!(resp.status().is_server_error());
+    assert_eq!(500, resp.status());
     assert_eq!(
         ApiErrorResponseBody {
             code: ApiErrorResponseCode::FunTranslationsError,
