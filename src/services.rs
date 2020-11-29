@@ -23,7 +23,7 @@ pub fn config_app(cfg: &mut ServiceConfig) {
 
 /// API service that, given a Pokémon name, returns its "Shakespearean" description.
 ///
-/// In case of errors, returns a JSON reponse with a proper status code (`code`) and an indicative error description
+/// In case of errors, returns a JSON reponse with a descriptive code (`code`) and an indicative error detail
 /// (`message`).
 #[get("/pokemon/{pokemon_name}")]
 async fn get_shakespearean_description(
