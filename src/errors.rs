@@ -3,47 +3,49 @@ use crate::poke_api_client::PokeApiClientError;
 use actix_web::error::ResponseError;
 use actix_web::http::StatusCode;
 use actix_web::HttpResponse;
-use reqwest::Error as ReqwestError;
 use reqwest::StatusCode as ReqwestStatusCode;
 use serde::{Deserialize, Serialize};
 
-/// Representation of an error response body.
+/// Representation of an API error response body.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct JsonErrorResponseBody {
-    pub code: u16,
+pub struct ApiErrorResponseBody {
+    pub code: ApiErrorResponseCode,
     pub message: String,
 }
 
-impl JsonErrorResponseBody {
-    fn new(err: &ReqwestError) -> Self {
-        Self {
-            code: map_reqwest_to_actix_status_code(err.status()).as_u16(),
-            message: err.to_string(),
-        }
-    }
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum ApiErrorResponseCode {
+    TranslatableDescriptionNotFound,
+    PokeApiError,
+    FunTranslationsError,
+    TooManyRequests,
 }
 
 /// Make `PokeApiClientError` an `actix_web` "citizen" by implementing `actix_web::error::ResponseError`.
 impl ResponseError for PokeApiClientError {
     fn status_code(&self) -> StatusCode {
         match self {
-            PokeApiClientError::DescriptionNotFound(_) => StatusCode::NOT_FOUND,
+            PokeApiClientError::TraslatableDescriptionNotFound(_) => StatusCode::NOT_FOUND,
             PokeApiClientError::RequestError(e) => map_reqwest_to_actix_status_code(e.status()),
         }
     }
 
     fn error_response(&self) -> HttpResponse {
         match self {
-            PokeApiClientError::DescriptionNotFound(e) => {
-                HttpResponse::NotFound().json(JsonErrorResponseBody {
-                    code: 404,
+            PokeApiClientError::TraslatableDescriptionNotFound(e) => {
+                HttpResponse::NotFound().json(ApiErrorResponseBody {
+                    code: ApiErrorResponseCode::TranslatableDescriptionNotFound,
                     message: e.to_string(),
                 })
             }
-            PokeApiClientError::RequestError(e) => {
-                HttpResponse::build(map_reqwest_to_actix_status_code(e.status()))
-                    .json(JsonErrorResponseBody::new(&e))
-            }
+            PokeApiClientError::RequestError(e) => HttpResponse::build(
+                map_reqwest_to_actix_status_code(e.status()),
+            )
+            .json(ApiErrorResponseBody {
+                code: ApiErrorResponseCode::PokeApiError,
+                message: e.to_string(),
+            }),
         }
     }
 }
@@ -59,11 +61,24 @@ impl ResponseError for FunTranslationsClientError {
 
     fn error_response(&self) -> HttpResponse {
         match self.0.status() {
-            Some(status_code) => {
-                HttpResponse::build(map_reqwest_to_actix_status_code(Some(status_code)))
-                    .json(JsonErrorResponseBody::new(&self.0))
-            }
-            None => HttpResponse::InternalServerError().json(JsonErrorResponseBody::new(&self.0)),
+            Some(StatusCode::TOO_MANY_REQUESTS) => HttpResponse::build(
+                map_reqwest_to_actix_status_code(Some(StatusCode::TOO_MANY_REQUESTS)),
+            )
+            .json(ApiErrorResponseBody {
+                code: ApiErrorResponseCode::TooManyRequests,
+                message: self.0.to_string(),
+            }),
+            Some(status_code) => HttpResponse::build(map_reqwest_to_actix_status_code(Some(
+                status_code,
+            )))
+            .json(ApiErrorResponseBody {
+                code: ApiErrorResponseCode::FunTranslationsError,
+                message: self.0.to_string(),
+            }),
+            None => HttpResponse::InternalServerError().json(ApiErrorResponseBody {
+                code: ApiErrorResponseCode::FunTranslationsError,
+                message: self.0.to_string(),
+            }),
         }
     }
 }

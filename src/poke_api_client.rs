@@ -40,7 +40,7 @@ impl PokeApiClient {
         let language_filter = "en";
         let description = Self::pick_random_description(&resp.descriptions, language_filter)
             .ok_or_else(|| {
-                PokeApiClientError::DescriptionNotFound(DescriptionNotFound {
+                PokeApiClientError::TraslatableDescriptionNotFound(DescriptionNotFound {
                     api_url,
                     language_filter: language_filter.into(),
                 })
@@ -71,7 +71,7 @@ impl PokeApiClient {
 
 #[derive(Debug)]
 pub enum PokeApiClientError {
-    DescriptionNotFound(DescriptionNotFound),
+    TraslatableDescriptionNotFound(DescriptionNotFound),
     RequestError(ReqwestError),
 }
 
@@ -96,7 +96,7 @@ impl Display for DescriptionNotFound {
 impl StdError for PokeApiClientError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Self::DescriptionNotFound(e) => Some(e),
+            Self::TraslatableDescriptionNotFound(e) => Some(e),
             Self::RequestError(e) => Some(e),
         }
     }
@@ -105,7 +105,7 @@ impl StdError for PokeApiClientError {
 impl Display for PokeApiClientError {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match self {
-            Self::DescriptionNotFound(e) => Display::fmt(e, f),
+            Self::TraslatableDescriptionNotFound(e) => Display::fmt(e, f),
             Self::RequestError(e) => Display::fmt(e, f),
         }
     }
