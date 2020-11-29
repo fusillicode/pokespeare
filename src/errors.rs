@@ -23,26 +23,6 @@ impl JsonErrorResponseBody {
     }
 }
 
-/// Make `FunTranslationsClientError` an `actix_web` "citizen" by implementing `actix_web::error::ResponseError`.
-impl ResponseError for FunTranslationsClientError {
-    fn status_code(&self) -> StatusCode {
-        match self.0.status() {
-            Some(status_code) => map_reqwest_to_actix_status_code(Some(status_code)),
-            None => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-
-    fn error_response(&self) -> HttpResponse {
-        match self.0.status() {
-            Some(status_code) => {
-                HttpResponse::build(map_reqwest_to_actix_status_code(Some(status_code)))
-                    .json(JsonErrorResponseBody::new(&self.0))
-            }
-            None => HttpResponse::InternalServerError().json(JsonErrorResponseBody::new(&self.0)),
-        }
-    }
-}
-
 /// Make `PokeApiClientError` an `actix_web` "citizen" by implementing `actix_web::error::ResponseError`.
 impl ResponseError for PokeApiClientError {
     fn status_code(&self) -> StatusCode {
@@ -64,6 +44,26 @@ impl ResponseError for PokeApiClientError {
                 HttpResponse::build(map_reqwest_to_actix_status_code(e.status()))
                     .json(JsonErrorResponseBody::new(&e))
             }
+        }
+    }
+}
+
+/// Make `FunTranslationsClientError` an `actix_web` "citizen" by implementing `actix_web::error::ResponseError`.
+impl ResponseError for FunTranslationsClientError {
+    fn status_code(&self) -> StatusCode {
+        match self.0.status() {
+            Some(status_code) => map_reqwest_to_actix_status_code(Some(status_code)),
+            None => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+
+    fn error_response(&self) -> HttpResponse {
+        match self.0.status() {
+            Some(status_code) => {
+                HttpResponse::build(map_reqwest_to_actix_status_code(Some(status_code)))
+                    .json(JsonErrorResponseBody::new(&self.0))
+            }
+            None => HttpResponse::InternalServerError().json(JsonErrorResponseBody::new(&self.0)),
         }
     }
 }
